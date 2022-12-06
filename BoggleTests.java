@@ -80,29 +80,29 @@ public class BoggleTests {
         }
     }
 
-    //BoggleStats Test
-    @Test
-    void endRoundTest() {
-        BoggleStats stats = new BoggleStats();
-        stats.addWord("apps", BoggleStats.Player.Human);
-        stats.addWord("apple", BoggleStats.Player.Human);
-        HashSet test = new HashSet<>(); test.add("apps"); test.add("apple");
-        assertEquals(test, stats.getPlayerWords());
-        assertEquals(3, stats.getScore());
-
-        stats.addWord("apps1", BoggleStats.Player.Human);
-        stats.endRound();
-
-        stats.addWord("apps2", BoggleStats.Player.Human);
-        stats.endRound();
-
-        stats.addWord("apps3", BoggleStats.Player.Human);
-        stats.addWord("apps4", BoggleStats.Player.Human);
-        stats.addWord("apps5", BoggleStats.Player.Human);
-        stats.endRound();
-
-        assertEquals(3, stats.getRound());
-        assertEquals(0, stats.getScore());
-        assertEquals(true, stats.getPlayerWords().isEmpty());
-    }
+//    //BoggleStats Test
+//    @Test
+//    void endRoundTest() {
+//        BoggleStats stats = new BoggleStats();
+//        stats.addWord("apps", BoggleStats.Player.Human);
+//        stats.addWord("apple", BoggleStats.Player.Human);
+//        HashSet test = new HashSet<>(); test.add("apps"); test.add("apple");
+//        assertEquals(test, stats.getPlayerWords());
+//        assertEquals(3, stats.getScore());
+//
+//        stats.addWord("apps1", BoggleStats.Player.Human);
+//        stats.endRound();
+//
+//        stats.addWord("apps2", BoggleStats.Player.Human);
+//        stats.endRound();
+//
+//        stats.addWord("apps3", BoggleStats.Player.Human);
+//        stats.addWord("apps4", BoggleStats.Player.Human);
+//        stats.addWord("apps5", BoggleStats.Player.Human);
+//        stats.endRound();
+//
+//        assertEquals(3, stats.getRound());
+//        assertEquals(0, stats.getScore());
+//        assertEquals(true, stats.getPlayerWords().isEmpty());
+//    }
 }
