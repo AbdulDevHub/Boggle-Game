@@ -1,5 +1,9 @@
 package boggle;
 
+import storage.GameStorage;
+import storage.Storage;
+import storage.StorageCreator;
+
 import java.util.*;
 
 /**
@@ -15,7 +19,6 @@ public class BoggleGame {
      * stores game statistics
      */ 
     private BoggleStats gameStats;
-
     /**
      * dice used to randomize letter assignments for a small grid
      */ 
@@ -61,48 +64,74 @@ public class BoggleGame {
      * It will loop until the user indicates they are done playing.
      */
     public void playGame(){
-        int boardSize;
+        int boardSize = 0;
         while(true){
-            System.out.println("Enter 1 to play on a big (5x5) grid; 2 to play on a small (4x4) one:");
+            System.out.println("Enter 1 to play on a big (5x5) grid; Enter 2 to play on a small (4x4) one; " +
+                    "Enter 3 to continue from a saved game: ");
             String choiceGrid = scanner.nextLine();
+
+            Storage game = new StorageCreator().getStorage("game");
+            int numberOfSaves = ((GameStorage)game).numberOfSaves();
 
             //get grid size preference
             if(choiceGrid == "") break; //end game if user inputs nothing
-            while(!choiceGrid.equals("1") && !choiceGrid.equals("2")){
-                System.out.println("Please try again.");
-                System.out.println("Enter 1 to play on a big (5x5) grid; 2 to play on a small (4x4) one:");
+            while((!choiceGrid.equals("1") && !choiceGrid.equals("2") && !choiceGrid.equals("3")) ||
+                    (choiceGrid.equals("3") && numberOfSaves == 0)){
+                if (choiceGrid.equals("3") && numberOfSaves == 0){System.out.println("You have 0 saved games, try again...");}
+                else {System.out.println("Please try again.");}
+                System.out.println("Enter 1 to play on a big (5x5) grid; Enter 2 to play on a small (4x4) one; " +
+                        "Enter 3 to continue from a saved game: ");
                 choiceGrid = scanner.nextLine();
             }
 
             if(choiceGrid.equals("1")) boardSize = 5;
-            else boardSize = 4;
-
-            //get letter choice preference
-            System.out.println("Enter 1 to randomly assign letters to the grid; 2 to provide your own.");
-            String choiceLetters = scanner.nextLine();
-
-            if(choiceLetters == "") break; //end game if user inputs nothing
-            while(!choiceLetters.equals("1") && !choiceLetters.equals("2")){
-                System.out.println("Please try again.");
-                System.out.println("Enter 1 to randomly assign letters to the grid; 2 to provide your own.");
-                choiceLetters = scanner.nextLine();
+            else if (choiceGrid.equals("2")) boardSize = 4;
+            else {
+                String userOutput = "There are " + numberOfSaves + " saved games, pick which game you want [Enter" +
+                        " 1 - " + numberOfSaves + "]: ";
+                System.out.println(userOutput);
+                int choiceGame = Integer.parseInt(scanner.nextLine());
+                while (choiceGame > numberOfSaves || choiceGame <= 0){
+                    System.out.println("Please try again." + "\n" + userOutput);
+                    choiceGame = Integer.parseInt(scanner.nextLine());
+                }
+                game.retrieve(choiceGame); game.display(); boardSize = (int)Math.sqrt(game.getSaveData().get(1).length());
             }
 
-            if(choiceLetters.equals("1")){
-                playRound(boardSize,randomizeLetters(boardSize));
-            } else {
-                System.out.println("Input a list of " + boardSize*boardSize + " letters:");
-                choiceLetters = scanner.nextLine();
-                while(!(choiceLetters.length() == boardSize*boardSize)){
-                    System.out.println("Sorry, bad input. Please try again.");
-                    System.out.println("Input a list of " + boardSize*boardSize + " letters:");
+            if (!choiceGrid.equals("3")) {
+                //get letter choice preference
+                System.out.println("Enter 1 to randomly assign letters to the grid; 2 to provide your own.");
+                String choiceLetters = scanner.nextLine();
+
+                if (choiceLetters == "") break; //end game if user inputs nothing
+                while (!choiceLetters.equals("1") && !choiceLetters.equals("2")) {
+                    System.out.println("Please try again.");
+                    System.out.println("Enter 1 to randomly assign letters to the grid; 2 to provide your own.");
                     choiceLetters = scanner.nextLine();
                 }
-                playRound(boardSize,choiceLetters.toUpperCase());
+
+                if (choiceLetters.equals("1")) {
+                    playRound(boardSize, randomizeLetters(boardSize));
+                } else {
+                    System.out.println("Input a list of " + boardSize * boardSize + " letters:");
+                    choiceLetters = scanner.nextLine();
+                    while (!(choiceLetters.length() == boardSize * boardSize)) {
+                        System.out.println("Sorry, bad input. Please try again.");
+                        System.out.println("Input a list of " + boardSize * boardSize + " letters:");
+                        choiceLetters = scanner.nextLine();
+                    }
+                    playRound(boardSize, choiceLetters.toUpperCase());
+                }
+            } else{
+                gameStats.setPlayerWords(new HashSet<String>(Arrays.asList(game.getSaveData().get(0).split(", "))));
+                playRound(boardSize, game.getSaveData().get(1));
             }
 
             //round is over! So, store the statistics, and end the round.
             this.gameStats.summarizeRound();
+            ((new StorageCreator()).getStorage("score")).save(Arrays.asList(gameStats.getPlayerWords().toString(),
+                    gameStats.getComputerWords().toString(), Integer.toString(gameStats.getScore()),
+                    Integer.toString(gameStats.getCScore()), Integer.toString(gameStats.getRound() + 1)));
             this.gameStats.endRound();
 
             //Shall we repeat?
@@ -116,13 +145,21 @@ public class BoggleGame {
                 choiceRepeat = scanner.nextLine().toUpperCase();
             }
 
+            //Display prior performance
+            if(choiceRepeat == "" || choiceRepeat.equals("N")) System.out.println("Would You like to look at your prior" +
+                    " performance before the game ends? Type 'Y' or 'N': ");
+            else System.out.println("Would You like to look at your prior performance before the next match? Type 'Y' or 'N': ");
+            String choicePeformance = scanner.nextLine().toUpperCase();
+            if (choicePeformance.equals("Y")){
+                Storage score = new StorageCreator().getStorage("score");
+                score.retrieve(1);
+            }
             if(choiceRepeat == "" || choiceRepeat.equals("N")) break; //end game if user inputs nothing
-
         }
 
         //we are done with the game! So, summarize all the play that has transpired and exit.
         this.gameStats.summarizeGame();
-        System.out.println("Thanks for playing!");
+        System.out.println("\nThanks for playing!");
     }
 
     /* 
@@ -370,11 +407,16 @@ public class BoggleGame {
             System.out.println(board);
 
             //step 2. Get an input (a word) from the user via the console
-            System.out.print("Enter Found Word: ");
+            System.out.print("Enter Found Word ||| Enter S To Save Game ||| Press Enter To End Turn: ");
             String foundWord = scanner.nextLine().toUpperCase();
 
             //step 3. Check to see if it is valid (note validity checks should be case-insensitive)
-            if (foundWord.equals("")) {notDone = false;}
+            if (foundWord.equals("S")){
+                String playerWords = gameStats.getPlayerWords().toString();
+                List<String> saveData = Arrays.asList(playerWords.substring(1, playerWords.length() -1), board.toString());
+                ((new StorageCreator()).getStorage("game")).save(saveData);
+            }
+            else if (foundWord.equals("")) {notDone = false;}
             else if (foundWord.length() >= 4 && allWords.containsKey(foundWord) &&
                     gameStats.getPlayerWords().contains(foundWord) == false) {
                 gameStats.addWord(foundWord, BoggleStats.Player.Human);

@@ -121,7 +121,7 @@ public class BoggleStats {
      * Each player's score this round.
      */
     public void summarizeRound() {
-        System.out.println("------------------------------------------------");
+        System.out.println("++++++++++++++ Current Round Performance ++++++++++++++");
         System.out.println("Player Found Words: " + this.playerWords);
         System.out.println("Computer Found Words: " + this.computerWords);
         System.out.println("");
@@ -132,7 +132,6 @@ public class BoggleStats {
 
         System.out.println("Player Score: " + this.pScore);
         System.out.println("Computer Score: " + this.cScore);
-
     }
 
     /* 
@@ -142,7 +141,7 @@ public class BoggleStats {
      * The average number of words found by each player per round.
      */
     public void summarizeGame() {
-        System.out.println("------------------------------------------------");
+        System.out.println("\n+++++++++++++ Current Gameplay Performance ++++++++++++");
         System.out.println("Total Rounds Played: " + this.round);
         System.out.println("Total Player Score: " + this.pScoreTotal);
         System.out.println("Total Computer Score: " + this.cScoreTotal);
@@ -158,6 +157,18 @@ public class BoggleStats {
     }
 
     /*
+     * @return Set<String> The computer's word list
+     */
+    public Set<String> getComputerWords() {
+        return this.computerWords;
+    }
+
+    /*
+     * Store the words found by player
+     */
+    public void setPlayerWords(Set<String> playerWords){this.playerWords = playerWords;}
+
+    /*
      * @return int The number of rounds played
      */
     public int getRound() { return this.round; }
@@ -167,6 +178,13 @@ public class BoggleStats {
     */
     public int getScore() {
         return this.pScore;
+    }
+
+    /*
+     * @return int The current computer score
+     */
+    public int getCScore() {
+        return this.cScore;
     }
 
 }
