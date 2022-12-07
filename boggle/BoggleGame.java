@@ -33,12 +33,26 @@ public class BoggleGame {
                     "BJKQXZ", "CCNSTW", "CEIILT", "CEILPT", "CEIPST", "DDLNOR", "DDHNOT", "DHHLOR",
                     "DHLNOR", "EIIITT", "EMOTTT", "ENSSSU", "FIPRSY", "GORRVW", "HIPRRY", "NOOTUW", "OOOTTU"};
 
+
+    /**
+     * A linked list of players
+     *
+     * Represents the current player as well.
+     */
+
+    public Player playerList;
+
+    public int numPlayers;
+
+
+
+
     /* 
      * BoggleGame constructor
      */
     public BoggleGame() {
         this.scanner = new Scanner(System.in);
-        this.gameStats = new BoggleStats();
+        this.gameStats = new BoggleStats(this);
     }
 
     /* 
@@ -65,9 +79,32 @@ public class BoggleGame {
      */
     public void playGame(){
         int boardSize = 0;
+        //get player count
+        System.out.println("Enter the number of players you wish to play with.");
+        String choicePlayers = scanner.nextLine();
+
+        if(choicePlayers == "") return; //end game if user inputs nothing
+        boolean playerNumValid = false;
+        while(!playerNumValid){
+            try{
+                Integer playerNum = Integer.parseInt(choicePlayers);
+                playerNumValid = true;
+            }
+            catch (NumberFormatException e) {
+                System.out.println("Please try again.");
+                System.out.println("Enter the number of players you wish to play with.");
+                choicePlayers = scanner.nextLine();
+            }
+        }
+
+        Integer playerNum = Integer.parseInt(choicePlayers);
+        this.numPlayers = playerNum;
+        this.playerList =  Player.generatePlayers(playerNum);
+
+
         while(true){
             System.out.println("Enter 1 to play on a big (5x5) grid; Enter 2 to play on a small (4x4) one; " +
-                    "Enter 3 to continue from a saved game: ");
+                    "Enter 3 to continue from a saved singleplayer game: ");
             String choiceGrid = scanner.nextLine();
 
             Storage game = new StorageCreator().getStorage("game");
@@ -76,11 +113,11 @@ public class BoggleGame {
             //get grid size preference
             if(choiceGrid == "") break; //end game if user inputs nothing
             while((!choiceGrid.equals("1") && !choiceGrid.equals("2") && !choiceGrid.equals("3")) ||
-                    (choiceGrid.equals("3") && numberOfSaves == 0)){
-                if (choiceGrid.equals("3") && numberOfSaves == 0){System.out.println("You have 0 saved games, try again...");}
+                    (choiceGrid.equals("3") && (numberOfSaves == 0 || this.numPlayers != 1))){
+                if (choiceGrid.equals("3") && (numberOfSaves == 0 || this.numPlayers != 1)){System.out.println("You have 0 saved games, try again...");}
                 else {System.out.println("Please try again.");}
                 System.out.println("Enter 1 to play on a big (5x5) grid; Enter 2 to play on a small (4x4) one; " +
-                        "Enter 3 to continue from a saved game: ");
+                        "Enter 3 to continue from a saved singleplayer game: ");
                 choiceGrid = scanner.nextLine();
             }
 
@@ -400,14 +437,19 @@ public class BoggleGame {
      * @param allWords A mutable list of all legal words that can be found, given the boggleGrid grid letters
      */
     private void humanMove(BoggleGrid board, Map<String,ArrayList<Position>> allWords){
-        System.out.println("It's your turn to find some words!");
+        System.out.println("It's your turn to find some words " + this.playerList.name + "!" );
         boolean notDone = true;
         while(notDone) {
             //step 1. Print the board for the user, so they can scan it for words
             System.out.println(board);
 
             //step 2. Get an input (a word) from the user via the console
-            System.out.print("Enter Found Word ||| Enter S To Save Game ||| Press Enter To End Turn: ");
+            if (this.numPlayers == 1) {
+                System.out.print("Enter Found Word ||| Enter S To Save Game ||| Press Enter To End Turn: ");
+            }
+            else {
+                System.out.println("It's your turn to find some words " + this.playerList.name + "!" );
+                System.out.print("Enter Found Word or PASS (case sensative): "); }
             String foundWord = scanner.nextLine().toUpperCase();
 
             //step 3. Check to see if it is valid (note validity checks should be case-insensitive)
@@ -415,11 +457,13 @@ public class BoggleGame {
                 String playerWords = gameStats.getPlayerWords().toString();
                 List<String> saveData = Arrays.asList(playerWords.substring(1, playerWords.length() -1), board.toString());
                 ((new StorageCreator()).getStorage("game")).save(saveData);
-            }
-            else if (foundWord.equals("")) {notDone = false;}
+            } else if (foundWord.equals("PASS")) {
+                this.playerList = this.playerList.getNext();
+            } else if (foundWord.equals("")) {notDone = false;}
             else if (foundWord.length() >= 4 && allWords.containsKey(foundWord) &&
                     gameStats.getPlayerWords().contains(foundWord) == false) {
                 gameStats.addWord(foundWord, BoggleStats.Player.Human);
+                this.playerList = this.playerList.getNext();
                 System.out.println("Nice, You Scored " + (foundWord.length() - 3) + " Point(s)!");
             } else {System.out.println("Invalid Input '" + foundWord + "', Try Again!");}
         }

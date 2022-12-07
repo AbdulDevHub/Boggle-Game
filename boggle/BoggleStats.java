@@ -46,6 +46,8 @@ public class BoggleStats {
      */  
     private int round; 
 
+    private BoggleGame game;
+
     /**
      * enumarable types of players (human or computer)
      */  
@@ -63,7 +65,7 @@ public class BoggleStats {
      * Sets round, totals and averages to 0.
      * Initializes word lists (which are sets) for computer and human players.
      */
-    public BoggleStats() {
+    public BoggleStats(BoggleGame game) {
         this.playerWords = new HashSet<String>();
         this.computerWords = new HashSet<String>();
         this.pScore = 0;
@@ -73,6 +75,7 @@ public class BoggleStats {
         this.pAverageWords = 0;
         this.cAverageWords = 0;
         this.round = 0;
+        this.game = game;
     }
 
     /* 
@@ -89,6 +92,7 @@ public class BoggleStats {
         } else if (player.player.equals("Human")) {
             this.playerWords.add(word);
             this.pScore += word.length() - 3;
+            this.game.playerList.addWord(word);
         }
     }
 
@@ -122,16 +126,30 @@ public class BoggleStats {
      */
     public void summarizeRound() {
         System.out.println("++++++++++++++ Current Round Performance ++++++++++++++");
-        System.out.println("Player Found Words: " + this.playerWords);
-        System.out.println("Computer Found Words: " + this.computerWords);
-        System.out.println("");
+        if(this.game.numPlayers == 1) {
 
-        System.out.println("Number Of Words (Player): " + this.playerWords.size());
-        System.out.println("Number Of Words (Computer): " + this.computerWords.size());
-        System.out.println("");
+            System.out.println("Player Found Words: " + this.playerWords);
+            System.out.println("Computer Found Words: " + this.computerWords);
+            System.out.println("");
 
-        System.out.println("Player Score: " + this.pScore);
-        System.out.println("Computer Score: " + this.cScore);
+            System.out.println("Number Of Words (Player): " + this.playerWords.size());
+            System.out.println("Number Of Words (Computer): " + this.computerWords.size());
+            System.out.println("");
+
+            System.out.println("Player Score: " + this.pScore);
+            System.out.println("Computer Score: " + this.cScore);
+        }
+        else {
+            for (int i = 0; i < this.game.numPlayers; i++) {
+                this.game.playerList.getStats(this.round);
+                this.game.playerList = this.game.playerList.getNext();
+            }
+            System.out.println("Computer Found Words: " + this.computerWords);
+            System.out.println("");
+            System.out.println("Number Of Words (Computer): " + this.computerWords.size());
+            System.out.println("");
+            System.out.println("Computer Score: " + this.cScore);
+        }
     }
 
     /* 
@@ -142,11 +160,22 @@ public class BoggleStats {
      */
     public void summarizeGame() {
         System.out.println("\n+++++++++++++ Current Gameplay Performance ++++++++++++");
-        System.out.println("Total Rounds Played: " + this.round);
-        System.out.println("Total Player Score: " + this.pScoreTotal);
-        System.out.println("Total Computer Score: " + this.cScoreTotal);
-        System.out.println("Average Number Of Words (Player): " + this.pAverageWords);
-        System.out.println("Average Number Of Words (Computer): " + this.cAverageWords);
+        if(this.game.numPlayers == 1) {
+            System.out.println("Total Rounds Played: " + this.round);
+            System.out.println("Total Player Score: " + this.pScoreTotal);
+            System.out.println("Total Computer Score: " + this.cScoreTotal);
+            System.out.println("Average Number Of Words (Player): " + this.pAverageWords);
+            System.out.println("Average Number Of Words (Computer): " + this.cAverageWords);
+        }
+        else{
+            System.out.println("Total Rounds Played: " + this.round);
+            for (int i = 0; i < this.game.numPlayers; i++) {
+                this.game.playerList.endStats();
+                this.game.playerList = this.game.playerList.getNext();
+            }
+            System.out.println("Total Computer Score: " + this.cScoreTotal);
+            System.out.println("Average Number Of Words (Computer): " + this.cAverageWords);
+        }
     }
 
     /* 
