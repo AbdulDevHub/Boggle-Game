@@ -1,5 +1,7 @@
 # Boggle Game
 
+<img height="400" src="https://github.com/AbdulDevHub/Boggle-Game/blob/master/boggle.jpeg?raw=true">
+
 ## Overview
 
 This repository contains the code for a Boggle game implemented in Java. The game involves finding words in a grid of letters that are randomly placed.
